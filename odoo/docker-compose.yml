@@ -1,0 +1,33 @@
+version: '3.1'
+services:
+  web:
+#    image: odoo:15.0
+    image: salimusavi/odoo15jalaali:1
+    depends_on:
+      - mydb
+    ports:
+      - "8069:8069"
+    volumes:
+      - ./odoo-web-data:/var/lib/odoo
+      - ./config:/etc/odoo
+      - ./addons:/mnt/extra-addons
+      - ./dev:/mnt/dev
+    environment:
+      - HOST=mydb
+      - USER=odoodbuser
+      - PASSWORD=odoodbpass
+  mydb:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoodbpass
+      - POSTGRES_USER=odoodbuser
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./odoo-db-data:/var/lib/postgresql/data/pgdata
+
+volumes:
+  odoo-web-data:
+  odoo-db-data:

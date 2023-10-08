@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="investment_act_window" model="ir.actions.act_window">
+        <field name="res_model">building_investment.investment</field>
+        <field name="name">سرمایه گزاری</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define a new investment
+            </p>
+        </field>
+    </record>
+    <!--
+    سرمایه گزاری
+
+    -->
+
+
+    <record id="investment_view_tree" model="ir.ui.view">
+        <field name="name">investment.tree</field>
+        <field name="model">building_investment.investment</field>
+        <field name="arch" type="xml">
+            <tree string="سرمایه گزاری">
+                <field name="amount" string="مبلغ" sum="جمع"/>
+                <field name="investor_id" string="سرمایه گزار" widget=""/>
+                <field name="date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="investment_view_form" model="ir.ui.view">
+        <field name="name">investment.form</field>
+        <field name="model">building_investment.investment</field>
+        <field name="arch" type="xml">
+            <form string="form_string" version="14.0">
+                <sheet string="ثبت سرمایه گزاری">
+                    <group col="4">
+                        <field name="investor_id" can_create="true" can_write="true" modifiers="{}"/>
+                        <field name="date" modifiers="{}"/>
+                        <field name="amount" modifiers="{}"/>
+                        <separator/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="investment_act_window_view_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="investment_view_tree"/>
+        <field name="act_window_id" ref="investment_act_window"/>
+    </record>
+
+    <record id="investment_act_window_view_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="investment_view_form"/>
+        <field name="act_window_id" ref="investment_act_window"/>
+    </record>
+
+
+    <record id="investment_partner_act_window" model="ir.actions.act_window">
+        <field name="res_model">building_investment.investor</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define a new partner
+            </p>
+        </field>
+    </record>
+
+    <!--
+   سرمایه گزاران
+   -->
+
+    <record id="investment_partner_view_tree" model="ir.ui.view">
+        <field name="name">partner.tree</field>
+        <field name="model">building_investment.investor</field>
+        <field name="arch" type="xml">
+            <tree string="investor">
+                <field name="display_name" modifiers="{readonly: true}"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="investment_partner_view_form" model="ir.ui.view">
+        <field name="name">partner.form</field>
+        <field name="model">building_investment.investor</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet string="Investor">
+                    <group col="4">
+                        <field name="partner_id" on_change="1" can_create="true" can_write="true"
+                               modifiers="{&quot;required&quot;: true}"/>
+                        <newline/>
+                        <field name="investments" colspan="4" modifiers="{}">
+                            <tree string="سرمایه گزاری">
+                                <field name="amount" string="مبلغ"/>
+                                <field name="date"/>
+                            </tree>
+                        </field>
+                        <newline/>
+                        <field name="display_name" modifiers="{&quot;readonly&quot;: true}"/>
+                        <separator/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="bm_partner_act_window_view_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="investment_partner_view_tree"/>
+        <field name="act_window_id" ref="investment_partner_act_window"/>
+    </record>
+
+    <record id="bm_partner_act_window_view_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="investment_partner_view_form"/>
+        <field name="act_window_id" ref="investment_partner_act_window"/>
+    </record>
+
+
+    <menuitem name="bilding management" id="rs_learn_module_menu_root">
+        <menuitem id="investment_menu_action" action="investment_act_window" name="سرمایه گزاری"/>
+        <menuitem id="partner_menu_action" action="investment_partner_act_window" name="سرمایه گزاران"/>
+    </menuitem>
+</odoo>
