@@ -74,27 +74,52 @@ class Investor(models.Model):
     _description = 'Investor'
     _rec_name = 'display_name'
 
-    partner_id = fields.Many2one('res.partner', string='Partner', required=True, ondelete='cascade')
-
+    user_id = fields.Many2one('res.users', string='کاریر', required=True, ondelete='restrict')
+    user_name = fields.Char(string='نام کاربری', required=True)
+    name = fields.Char(string='نام', required=True)
+    family = fields.Char(string='نام خانوادگی', required=True)
+    code_meli = fields.Char(string='کدملی')
+    tel = fields.Char(string='تلفن')
+    mobile1 = fields.Char(string='موبایل۱')
+    mobile2 = fields.Char(string='موبایل۲')
+    email = fields.Char(string='ایمیل')
+    address = fields.Char(string='آدرس')
     investments = fields.One2many('building_investment.investment', 'investor_id', string='Investments')
     display_name = fields.Char(compute='_compute_display_name', store=True, string='Display Name')
 
-    @api.depends('partner_id')
+    @api.depends('name', 'family')
     def _compute_display_name(self):
         for record in self:
-            _logger.warning(f"{record.partner_id.name}")
-            record.display_name = f"{record.partner_id.name}"
+            # _logger.warning(f"{record.partner_id.name}")
+            record.display_name = f"{record.name}  {record.family}"
 
+    def _create_user(self, name: str, user_name: str):
+        """
+         ایجاد یک کاربر جدید
+        از نوع پرتال
 
-class Project(models.Model):
-    _name = "building_investment.project"
-    _description = "Project"
+        Args:
+            name (str): نام کاربر
+            user_name (str): نام کاربری
 
-    name = fields.Char(string="نام")
-    date_land_sale = fields.Date(string="تاریخ خرید زمین")
-    date_start = fields.Date(string="تاربخ شروع")
-    date_end = fields.Date(string="تاریخ پایان")
-    infrastructure = fields.Integer(string="زیربنا")
-    infrastructure_pure = fields.Integer(string="زیربنای خالس")
-    infrastructure_total = fields.Integer(string="زیربنای کل")
-    daily_profit = fields.Float(string="سود روزانه")
+        Returns:
+            کاربر جدید
+        """
+        return self.env['res.users'].create({
+            'name': name,
+            'login': user_name,
+            'sel_groups_1_9_10': 9,  # این مقدار به مدل res.users می گوید که کاربر جدید باید به گروه group_portal_user اضافه شود
+        })
+
+    @api.model
+    def create(self, vals):
+        if not vals.get('user_id'):
+            name = vals.get('name')
+            family = vals.get('family')
+            user_name = vals.get('user_name')
+
+            existing_user = self.env['res.users'].search([('login', '=', user_name)], limit=1)
+            if not existing_user:
+                user = self._create_user(name + ' ' + family, user_name)
+                vals['user_id'] = user.id
+        return super(Investor, self).create(vals)

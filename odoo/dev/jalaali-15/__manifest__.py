@@ -33,7 +33,7 @@
             'jalaali-15/static/js/moment-jalaali.js',
             'jalaali-15/static/js/daterangepicker_fixed.js',
             'jalaali-15/static/js/tempusdominus_fixed.js',
-            'jalaali/static/js/fullcalendar_fixed.js',
+            'jalaali-15/static/js/fullcalendar_fixed.js',
             ],
         },
     'license': 'LGPL-3',

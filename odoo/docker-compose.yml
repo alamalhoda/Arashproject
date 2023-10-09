@@ -10,7 +10,8 @@ services:
     volumes:
       - ./odoo-web-data:/var/lib/odoo
       - ./config:/etc/odoo
-      - ./addons:/mnt/extra-addons
+#      - ./addons:/mnt/extra-addons
+      - /Users/alamalhoda/Projects/odoo15e/addons:/mnt/extra-addons
       - ./dev:/mnt/dev
     environment:
       - HOST=mydb
