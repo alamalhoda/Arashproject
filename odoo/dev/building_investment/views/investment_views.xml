@@ -91,23 +91,24 @@
         <field name="arch" type="xml">
             <form>
                 <sheet string="Investor">
-                    <group>
-                        <!--                        <field name="name" on_change="1" can_create="false" can_write="true"-->
-                        <!--                               modifiers="{&quot;required&quot;: true}"/>-->
-                        <field name="user_name"/>
-                        <field_group string="Personal Information" cols="2">
-                            <field name="name" />
-                            <field name="family"/>
-                        </field_group>
+                    <group col="4">
+                        <field name="user_id" can_create="false" can_write="false"
+                               modifiers="{&quot;readonly&quot;: true, &quot;required&quot;: true}"/>
+                        <field name="user_name" modifiers="{&quot;required&quot;: true}"/>
+                        <field name="name" on_change="1" modifiers="{&quot;required&quot;: true}"/>
+                        <field name="family" on_change="1" modifiers="{&quot;required&quot;: true}"/>
+                        <field name="code_meli" modifiers="{}"/>
+                        <field name="tel" modifiers="{}"/>
+                        <field name="mobile1" modifiers="{}"/>
+                        <field name="mobile2" modifiers="{}"/>
+                        <field name="email" modifiers="{}"/>
+                        <field name="address" modifiers="{}"/>
                         <newline/>
-                        <field name="investments" colspan="4" modifiers="{}">
-                            <tree string="سرمایه گزاری">
-                                <field name="amount" string="مبلغ"/>
-                                <field name="date"/>
-                            </tree>
-                        </field>
+                        <field name="investments" colspan="4" on_change="1" modifiers="{}"/>
                         <newline/>
                         <field name="display_name" modifiers="{&quot;readonly&quot;: true}"/>
+                        <newline/>
+                        <field name="sum_of_investments" modifiers="{&quot;readonly&quot;: true}"/>
                         <separator/>
                     </group>
                 </sheet>

@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 import jdatetime
@@ -21,8 +22,8 @@ class Investment(models.Model):
     INVESTMENT_TYPE = [("1", "واریز"), ("2", "سود"), ("3", "برداشت")]
     amount = fields.Float(string='مبلغ')
     investor_id = fields.Many2one('building_investment.investor', string='سرمایه گزار')
-    date = fields.Date(string='تاریخ')
-    date_shamsi = fields.Char(string='تاریخ شمسی', compute='_compute_date_shamsi')
+    date = fields.Date(string='تاریخ', required=True)
+    date_shamsi = fields.Char(string='تاریخ شمسی')
     display_name = fields.Char(compute='_compute_display_name', store=True, string='Display Name')
     investment_type = fields.Selection(INVESTMENT_TYPE, string="نوع", default=INVESTMENT_TYPE[0][0])
     is_profie_calculated = fields.Boolean(string="محاسبه سود", default=False)
@@ -32,16 +33,27 @@ class Investment(models.Model):
     @api.model
     def create(self, vals):
         _logger.debug("...........create model %s", "investment")
+        if vals.get('date_shamsi'):
+            shamsi_date = vals.get('date_shamsi')
+            # if date[:4]<2000:
+            shamsi_date_year = int(shamsi_date[:4])
+            shamsi_date_month = int(shamsi_date[5:7])
+            shamsi_date_day = int(shamsi_date[-2:])
+            gregorian_date = jdatetime.jalali.JalaliToGregorian(shamsi_date_year, shamsi_date_month, shamsi_date_day)
+            gregorian_date = datetime.date(gregorian_date.gyear, gregorian_date.gmonth, gregorian_date.gday)
+            vals['date'] = gregorian_date
+            _logger.debug("...........create Investment %s ............", gregorian_date)
         return super().create(vals)
 
-    @api.depends('date')
-    def _compute_date_shamsi(self):
-        # _logger.debug(self.date)
-        for record in self:
-            if record.date:
-                record.date_shamsi = str(jdatetime.date.fromgregorian(date=record.date))
-            else:
-                record.date_shamsi = None
+    # @api.depends('date')
+    # def _compute_date_shamsi(self):
+    #     # _logger.debug(self.date)
+    #     for record in self:
+    #         # if record.date:
+    #         #     record.date_shamsi = str(jdatetime.date.fromgregorian(date=record.date))
+    #         # else:
+    #         #     record.date_shamsi = None
+    #         record.date_shamsi = None
 
     @api.depends('date')
     def _compute_day_of_project(self):
@@ -86,12 +98,18 @@ class Investor(models.Model):
     address = fields.Char(string='آدرس')
     investments = fields.One2many('building_investment.investment', 'investor_id', string='Investments')
     display_name = fields.Char(compute='_compute_display_name', store=True, string='Display Name')
+    sum_of_investments = fields.Integer(compute='_compute_sum_of_investments', store=True)
 
     @api.depends('name', 'family')
     def _compute_display_name(self):
         for record in self:
             # _logger.warning(f"{record.partner_id.name}")
             record.display_name = f"{record.name}  {record.family}"
+
+    @api.depends('investments')
+    def _compute_sum_of_investments(self):
+        for record in self:
+            record.sum_of_investments = sum(investment.amount for investment in record.investments)
 
     def _create_user(self, name: str, user_name: str):
         """
