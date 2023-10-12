@@ -11,7 +11,8 @@ services:
       - ./odoo-web-data:/var/lib/odoo
       - ./config:/etc/odoo
 #      - ./addons:/mnt/extra-addons
-      - /Users/alamalhoda/Projects/odoo15e/addons:/mnt/extra-addons
+#      - /Users/alamalhoda/Projects/odoo15e/addons:/mnt/extra-addons
+      - /Users/alamalhoda/Projects/odoo_source/15/odoo-15.0+e.20230802/odoo/addons:/mnt/extra-addons
       - ./dev:/mnt/dev
     environment:
       - HOST=mydb

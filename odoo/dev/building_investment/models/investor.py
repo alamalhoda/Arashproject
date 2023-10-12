@@ -29,16 +29,17 @@ class Investment(models.Model):
     is_profie_calculated = fields.Boolean(string="محاسبه سود", default=False)
     project_id = fields.Many2one('building_investment.project', string='پروژه', default=_default_project)
     day_of_project = fields.Integer(string='روز پروژه', compute='_compute_day_of_project')
-
+    convert = fields.Boolean(string='convert', default=False) # کانورت اطلاعات از فایل اکسل
     @api.model
     def create(self, vals):
         _logger.debug("...........create model %s", "investment")
-        if vals.get('date_shamsi'):
-            shamsi_date = vals.get('date_shamsi')
-            # if date[:4]<2000:
-            shamsi_date_year = int(shamsi_date[:4])
-            shamsi_date_month = int(shamsi_date[5:7])
-            shamsi_date_day = int(shamsi_date[-2:])
+        #هنگام کانورت اطلاعات از فایل اکسل تاریخ شمسی به میلادی تبدیل و ذخیره میگردد
+        if vals.get('convert') and vals.get('date_shamsi'):
+            shamsi_date = vals.get('date_shamsi').split('/')
+            shamsi_date_year = int(shamsi_date[0])
+            shamsi_date_month = int(shamsi_date[1])
+            shamsi_date_day = int(shamsi_date[2])
+
             gregorian_date = jdatetime.jalali.JalaliToGregorian(shamsi_date_year, shamsi_date_month, shamsi_date_day)
             gregorian_date = datetime.date(gregorian_date.gyear, gregorian_date.gmonth, gregorian_date.gday)
             vals['date'] = gregorian_date
@@ -86,7 +87,7 @@ class Investor(models.Model):
     _description = 'Investor'
     _rec_name = 'display_name'
 
-    user_id = fields.Many2one('res.users', string='کاریر', required=True, ondelete='restrict')
+    user_id = fields.Many2one('res.users', string='کاربر', required=True, ondelete='restrict')
     user_name = fields.Char(string='نام کاربری', required=True)
     name = fields.Char(string='نام', required=True)
     family = fields.Char(string='نام خانوادگی', required=True)
