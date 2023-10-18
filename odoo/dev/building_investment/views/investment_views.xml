@@ -16,7 +16,6 @@
 
     -->
 
-
     <record id="investment_view_tree" model="ir.ui.view">
         <field name="name">investment.tree</field>
         <field name="model">building_investment.investment</field>
@@ -34,11 +33,16 @@
         <field name="model">building_investment.investment</field>
         <field name="arch" type="xml">
             <form string="form_string" version="14.0">
+                <header>
+                    <button name="compute_profite_action" string="محاسبه سود" type="object" class="btn-primary"/>
+                </header>
                 <sheet string="ثبت سرمایه گزاری">
                     <group col="4">
                         <field name="investor_id" can_create="true" can_write="true" modifiers="{}"/>
                         <field name="date" modifiers="{}"/>
                         <field name="amount" modifiers="{}"/>
+                        <field name="investment_type" widget="selection_badge" />
+                        <div attrs='{"invisible": ["|",["investment_type","=","1"],["investment_type","=","2"]]}'>برای برداشت عدد منفی ثبت گردد.</div>
                         <separator/>
                     </group>
                 </sheet>
@@ -130,9 +134,4 @@
         <field name="act_window_id" ref="investment_partner_act_window"/>
     </record>
 
-
-    <menuitem name="bilding management" id="rs_learn_module_menu_root">
-        <menuitem id="investment_menu_action" action="investment_act_window" name="سرمایه گزاری"/>
-        <menuitem id="partner_menu_action" action="investment_partner_act_window" name="سرمایه گزاران"/>
-    </menuitem>
 </odoo>

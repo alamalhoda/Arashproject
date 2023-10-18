@@ -23,10 +23,14 @@ for building investment.    """,
 
     # always loaded
     'data': [
-       'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
         'views/views.xml',
         'views/templates.xml',
-       'views/investment_views.xml',
+        'views/costtype_views.xml',
+        'views/cost_views.xml',
+        'views/investment_views.xml',
+        'views/project_views.xml',
+        'views/menu.xml',
     ],
     'sequence': 1,
     'application': True,

@@ -29,11 +29,12 @@ class Investment(models.Model):
     is_profie_calculated = fields.Boolean(string="محاسبه سود", default=False)
     project_id = fields.Many2one('building_investment.project', string='پروژه', default=_default_project)
     day_of_project = fields.Integer(string='روز پروژه', compute='_compute_day_of_project')
-    convert = fields.Boolean(string='convert', default=False) # کانورت اطلاعات از فایل اکسل
+    convert = fields.Boolean(string='convert', default=False)  # کانورت اطلاعات از فایل اکسل
+
     @api.model
     def create(self, vals):
         _logger.debug("...........create model %s", "investment")
-        #هنگام کانورت اطلاعات از فایل اکسل تاریخ شمسی به میلادی تبدیل و ذخیره میگردد
+        # هنگام کانورت اطلاعات از فایل اکسل تاریخ شمسی به میلادی تبدیل و ذخیره میگردد
         if vals.get('convert') and vals.get('date_shamsi'):
             shamsi_date = vals.get('date_shamsi').split('/')
             shamsi_date_year = int(shamsi_date[0])
@@ -78,7 +79,12 @@ class Investment(models.Model):
 
     def invest(self):
         # اینجا می‌توانید عملیات لازم برای سرمایه‌گذاری را انجام دهید
+        _logger.debug(".........invest ................")
+        print(self.amount)
         pass
+
+    def compute_profite_action(self):
+        _logger.debug(self.amount)
 
 
 class Investor(models.Model):
@@ -127,7 +133,8 @@ class Investor(models.Model):
         return self.env['res.users'].create({
             'name': name,
             'login': user_name,
-            'sel_groups_1_9_10': 9,  # این مقدار به مدل res.users می گوید که کاربر جدید باید به گروه group_portal_user اضافه شود
+            'sel_groups_1_9_10': 9,
+            # این مقدار به مدل res.users می گوید که کاربر جدید باید به گروه group_portal_user اضافه شود
         })
 
     @api.model
