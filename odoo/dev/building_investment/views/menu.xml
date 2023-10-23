@@ -4,7 +4,7 @@
         <menuitem id="investment_menu_action" action="investment_act_window" name="سرمایه گزاری"/>
         <menuitem id="partner_menu_action" action="investment_partner_act_window" name="سرمایه گزاران"/>
         <menuitem id="project_menu_action" action="project_act_window" name="پروژه"/>
-        <menuitem id="project_menu_action" action="cost_act_window" name="هزینه"/>
+        <menuitem id="cost_menu_action" action="cost_act_window" name="هزینه"/>
         <menuitem id="costtype_menu_action" action="costtype_act_window" name=" گروه هزینه"/>
     </menuitem>
 </odoo>

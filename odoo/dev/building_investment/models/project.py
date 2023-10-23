@@ -16,4 +16,4 @@ class Project(models.Model):
     infrastructure = fields.Integer(string="زیربنا")
     infrastructure_pure = fields.Integer(string="زیربنای خالس")
     infrastructure_total = fields.Integer(string="زیربنای کل")
-    daily_profit = fields.Float(string="سود روزانه")
+    daily_profit = fields.Float(string="سود روزانه", digits=(2,8))

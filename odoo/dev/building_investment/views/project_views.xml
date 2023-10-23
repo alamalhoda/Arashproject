@@ -79,7 +79,17 @@
             </form>
         </field>
     </record>
-
+    
+    <record id="project_view_tree" model="ir.ui.view">
+        <field name="name">project.tree</field>
+        <field name="model">building_investment.project</field>
+        <field name="arch" type="xml">
+            <tree string="project">
+                <field name="id" optional="show"/>
+                <field name="name" modifiers="{readonly: true}"/>
+            </tree>
+        </field>
+    </record>
     <record id="project_act_window_view_form" model="ir.actions.act_window.view">
         <field name="sequence" eval="2"/>
         <field name="view_mode">form</field>

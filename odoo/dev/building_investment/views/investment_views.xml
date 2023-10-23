@@ -44,6 +44,7 @@
                         <field name="investment_type" widget="selection_badge" />
                         <div attrs='{"invisible": ["|",["investment_type","=","1"],["investment_type","=","2"]]}'>برای برداشت عدد منفی ثبت گردد.</div>
                         <separator/>
+                        <field name="calculat_profite"></field>
                     </group>
                 </sheet>
             </form>

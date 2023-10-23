@@ -20,13 +20,14 @@ class Investment(models.Model):
     _description = 'Investment'
 
     INVESTMENT_TYPE = [("1", "واریز"), ("2", "سود"), ("3", "برداشت")]
-    amount = fields.Float(string='مبلغ')
+    amount = fields.Float(string='مبلغ', digits=(16, 0))
     investor_id = fields.Many2one('building_investment.investor', string='سرمایه گزار')
     date = fields.Date(string='تاریخ', required=True)
     date_shamsi = fields.Char(string='تاریخ شمسی')
     display_name = fields.Char(compute='_compute_display_name', store=True, string='Display Name')
     investment_type = fields.Selection(INVESTMENT_TYPE, string="نوع", default=INVESTMENT_TYPE[0][0])
     is_profie_calculated = fields.Boolean(string="محاسبه سود", default=False)
+    calculat_profite = fields.Boolean(string="آیا سود محاسبه شود؟", default=True)
     project_id = fields.Many2one('building_investment.project', string='پروژه', default=_default_project)
     day_of_project = fields.Integer(string='روز پروژه', compute='_compute_day_of_project')
     convert = fields.Boolean(string='convert', default=False)  # کانورت اطلاعات از فایل اکسل
@@ -83,8 +84,16 @@ class Investment(models.Model):
         print(self.amount)
         pass
 
+    def _compute_profite(self):
+        days = self.day_of_project
+        profite_per_day = self.project_id.daily_profit
+        _logger.debug(f"day_of_project: %s" % days)
+        _logger.debug(f"profite_per_day: %s" % profite_per_day)
+
+        return self.amount * days * profite_per_day
+
     def compute_profite_action(self):
-        _logger.debug(self.amount)
+        _logger.debug(f"..................{self._compute_profite()}")
 
 
 class Investor(models.Model):
@@ -105,7 +114,7 @@ class Investor(models.Model):
     address = fields.Char(string='آدرس')
     investments = fields.One2many('building_investment.investment', 'investor_id', string='Investments')
     display_name = fields.Char(compute='_compute_display_name', store=True, string='Display Name')
-    sum_of_investments = fields.Integer(compute='_compute_sum_of_investments', store=True)
+    sum_of_investments = fields.Float(compute='_compute_sum_of_investments', store=True, digits=(16, 0))
 
     @api.depends('name', 'family')
     def _compute_display_name(self):
