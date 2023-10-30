@@ -3,6 +3,7 @@ import logging
 
 import jdatetime
 from odoo import models, fields, api
+from odoo.modules import module
 
 _logger = logging.getLogger(__name__)
 
@@ -18,12 +19,16 @@ def _default_project(self):
 class Investment(models.Model):
     _name = 'building_investment.investment'
     _description = 'Investment'
+    _order = 'date desc, investor_id, investment_type'
 
     INVESTMENT_TYPE = [("1", "واریز"), ("2", "سود"), ("3", "برداشت")]
     amount = fields.Float(string='مبلغ', digits=(16, 0))
     investor_id = fields.Many2one('building_investment.investor', string='سرمایه گزار')
     date = fields.Date(string='تاریخ', required=True)
-    date_shamsi = fields.Char(string='تاریخ شمسی')
+    date_shamsi = fields.Char(string='تاریخ شمسی', compute='_compute_date_shamsi', store=True)
+    date_shamsi_year = fields.Char(string='تاریخ شمسی-سال', compute='_compute_date_shamsi_year', store=True)
+    date_shamsi_year_month = fields.Char(string='تاریخ شمسی-سال-ماه', compute='_compute_date_shamsi_year_month',
+                                         store=True)
     display_name = fields.Char(compute='_compute_display_name', store=True, string='Display Name')
     investment_type = fields.Selection(INVESTMENT_TYPE, string="نوع", default=INVESTMENT_TYPE[0][0])
     is_profie_calculated = fields.Boolean(string="محاسبه سود", default=False)
@@ -45,7 +50,11 @@ class Investment(models.Model):
             gregorian_date = jdatetime.jalali.JalaliToGregorian(shamsi_date_year, shamsi_date_month, shamsi_date_day)
             gregorian_date = datetime.date(gregorian_date.gyear, gregorian_date.gmonth, gregorian_date.gday)
             vals['date'] = gregorian_date
-            _logger.debug("...........create Investment %s ............", gregorian_date)
+        # هنگام ایجاد اگر تاریخ شمسی نداشت ایجاد میکند
+        if vals.get('date') and not vals.get('date_shamsi'):
+            gregorian_date = vals.get('date')
+            shamsi_date = jdatetime.date.fromgregorian(date=gregorian_date).strftime("%Y/%m/%d")
+            vals['date_shamsi'] = shamsi_date
         return super().create(vals)
 
     # @api.depends('date')
@@ -58,14 +67,37 @@ class Investment(models.Model):
     #         #     record.date_shamsi = None
     #         record.date_shamsi = None
 
-    @api.depends('date')
+    @api.depends('date', 'project_id.date_end')
     def _compute_day_of_project(self):
         for record in self:
-            if record.date:
+            if record.date and record.project_id.date_end:
                 timedelta = record.project_id.date_end - record.date
                 record.day_of_project = timedelta.days + 1
             else:
                 record.day_of_project = None
+
+    @api.depends('date')
+    def _compute_date_shamsi(self):
+        for record in self:
+            gregorian_date = record.date
+            record.date_shamsi = jdatetime.date.fromgregorian(date=gregorian_date).strftime("%Y/%m/%d")
+
+    @api.depends('date')
+    def _compute_date_shamsi_year(self):
+        for record in self:
+            gregorian_date = record.date
+            sh = jdatetime.date.fromgregorian(date=gregorian_date)
+            record.date_shamsi_year = sh.year
+
+    @api.depends('date')
+    def _compute_date_shamsi_year_month(self):
+        for record in self:
+            try:
+                gregorian_date = record.date
+                sh = jdatetime.date.fromgregorian(date=gregorian_date)
+                record.date_shamsi_year_month = f"{sh.year}-{sh.month:02}({sh.j_months_fa[sh.month - 1]})"
+            except Exception as e:
+                _logger.debug(f"........_compute_date_shamsi_year_month {record.id} ----- {e}")
 
     @api.depends('investor_id', 'date', 'amount')
     def _compute_display_name(self):
@@ -87,13 +119,54 @@ class Investment(models.Model):
     def _compute_profite(self):
         days = self.day_of_project
         profite_per_day = self.project_id.daily_profit
-        _logger.debug(f"day_of_project: %s" % days)
-        _logger.debug(f"profite_per_day: %s" % profite_per_day)
+        # محاسبه سود بر اساس روز پروژه و مبلغ و درصد سود روزانه
+        calculated_profite = self.amount * days * profite_per_day
+        return calculated_profite
 
-        return self.amount * days * profite_per_day
+    def _create_profite(self):
+        # ایجاد رکورد سود
+        new_profite = self.env['building_investment.investment'].create({
+            'amount': self._compute_profite(),
+            'investor_id': self.investor_id.id,  # به .id توجه شود
+            'date': self.date,
+            'investment_type': "2"  # سود
+        })
+        _logger.debug(f"........._create_profite for : {self.display_name} ................")
+        return new_profite
 
     def compute_profite_action(self):
-        _logger.debug(f"..................{self._compute_profite()}")
+        new_profite = self._create_profite()
+        _logger.debug(f"......................دکمه محاسبه سود................................")
+        # self.env.notify_info("سود created")
+        # self._notify_info("طود created")
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'ذخیره سود',
+                'message': f"سود برای '{new_profite.investor_id.display_name}' به مبلغ '{new_profite.amount}' ایجاد شد.",
+                'sticky': True,
+                'buttons': [
+                    {'text': 'Ok', 'icon': 'fa-check'},
+                    {'text': 'Cancel', 'icon': 'fa-close'},
+                ]
+            }
+        }
+
+    def action_calculate_profit(self):
+        """
+        دکمه محاسبه سود در لیست سرمایه گزاری ها برای محاسبه سود چند رکورد با هم
+        :return:
+        """
+        selected_records = self.env.context.get('active_ids', [])  # دریافت رکوردهای انتخاب شده
+        for record in self.env['building_investment.investment'].browse(selected_records):
+            # calculate profit 
+            # record.profit = ... 
+            # record.write()
+            record._create_profite()
+            _logger.debug(f"--------------------------------{record}")
+
+        return {'type': 'ir.actions.act_window_close'}
 
 
 class Investor(models.Model):
@@ -114,18 +187,48 @@ class Investor(models.Model):
     address = fields.Char(string='آدرس')
     investments = fields.One2many('building_investment.investment', 'investor_id', string='Investments')
     display_name = fields.Char(compute='_compute_display_name', store=True, string='Display Name')
-    sum_of_investments = fields.Float(compute='_compute_sum_of_investments', store=True, digits=(16, 0))
+    sum_of_investments = fields.Float(compute='_compute_sum_of_investments', store=True, digits=(16, 0),
+                                      string="موجودی کل")
+    sum_of_variz = fields.Float(compute='_compute_sum_of_variz', store=True, digits=(16, 0), string="مجموع واریز")
+    sum_of_profite = fields.Float(compute='_compute_sum_of_profite', store=True, digits=(16, 0), string="مجموع سود")
+    sum_of_bardasht = fields.Float(compute='_compute_sum_of_bardasht', store=True, digits=(16, 0),
+                                   string="مجموع برداشت")
+    sum_of_variz_bardasht = fields.Float(compute='_compute_sum_of_variz_bardasht', store=False, digits=(16, 0),
+                                         string="واریز + برداشت")
 
     @api.depends('name', 'family')
     def _compute_display_name(self):
         for record in self:
             # _logger.warning(f"{record.partner_id.name}")
-            record.display_name = f"{record.name}  {record.family}"
+            record.display_name = f"{record.name} {record.family}"
 
     @api.depends('investments')
     def _compute_sum_of_investments(self):
         for record in self:
             record.sum_of_investments = sum(investment.amount for investment in record.investments)
+
+    @api.depends('investments')
+    def _compute_sum_of_variz(self):
+        for record in self:
+            record.sum_of_variz = sum(
+                investment.amount for investment in record.investments if investment.investment_type == "1")
+
+    @api.depends('investments')
+    def _compute_sum_of_profite(self):
+        for record in self:
+            record.sum_of_profite = sum(
+                investment.amount for investment in record.investments if investment.investment_type == "2")
+
+    @api.depends('investments')
+    def _compute_sum_of_bardasht(self):
+        for record in self:
+            record.sum_of_bardasht = sum(
+                investment.amount for investment in record.investments if investment.investment_type == "3")
+
+    def _compute_sum_of_variz_bardasht(self):
+        for record in self:
+            record.sum_of_variz_bardasht = sum(
+                investment.amount for investment in record.investments if investment.investment_type != "2")
 
     def _create_user(self, name: str, user_name: str):
         """

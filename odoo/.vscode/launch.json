@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: odoo server",
+            "type": "python",
+            "request": "launch",
+            "program": "/Users/alamalhoda/Projects/odoo_source/15/odoo15ce/odoo/odoo-bin",
+            "args": ["-c", "/Users/alamalhoda/Projects/ArashProject/odoo/config/odoo_local.conf", "--limit-memory-hard", "0", "-u", "building_investment"],
+            "console": "integratedTerminal"
+                },
+        {
+            "name": "Python: File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "justMyCode": true
+        }
+    ]
+}

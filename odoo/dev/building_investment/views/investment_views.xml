@@ -20,10 +20,17 @@
         <field name="name">investment.tree</field>
         <field name="model">building_investment.investment</field>
         <field name="arch" type="xml">
-            <tree string="سرمایه گزاری">
+            <tree decoration-danger="amount &lt; 0">
+                <header>
+                    <button name="action_calculate_profit" string="محاسبه سود" type="object" class="btn-success" icon="fa-check"/>
+                </header>
+                <field name="id"/>
                 <field name="amount" string="مبلغ" sum="جمع"/>
-                <field name="investor_id" string="سرمایه گزار" widget=""/>
+                <field name="investment_type" widget="badge" decoration-success="investment_type == '1'" decoration-info="investment_type == '2'"/>
+                <field name="investor_id" string="سرمایه گزار" widget="badge" group="1"/>
                 <field name="date"/>
+                <field name="date_shamsi"/>
+                <field name="day_of_project"/>
             </tree>
         </field>
     </record>
@@ -85,7 +92,14 @@
         <field name="model">building_investment.investor</field>
         <field name="arch" type="xml">
             <tree string="investor">
+                <field name="id" />
                 <field name="display_name" modifiers="{readonly: true}"/>
+                <field name="sum_of_investments" modifiers="{readonly: true}"/>
+                <field name="sum_of_variz" modifiers="{readonly: true}"/>
+                <field name="sum_of_profite" modifiers="{readonly: true}"/>
+                <field name="sum_of_bardasht" modifiers="{readonly: true}"/>
+                <field name="sum_of_variz_bardasht" modifiers="{readonly: true}"/>
+
             </tree>
         </field>
     </record>
@@ -97,8 +111,7 @@
             <form>
                 <sheet string="Investor">
                     <group col="4">
-                        <field name="user_id" can_create="false" can_write="false"
-                               modifiers="{&quot;readonly&quot;: true, &quot;required&quot;: true}"/>
+                        <field name="user_id" can_create="false" can_write="false" modifiers="{&quot;readonly&quot;: true, &quot;required&quot;: true}"/>
                         <field name="user_name" modifiers="{&quot;required&quot;: true}"/>
                         <field name="name" on_change="1" modifiers="{&quot;required&quot;: true}"/>
                         <field name="family" on_change="1" modifiers="{&quot;required&quot;: true}"/>
